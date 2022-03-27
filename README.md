@@ -2,4 +2,4 @@
 
 ---
 
-__lint-staged Rust implementation with 100% API compatible.__
+__lint-staged rust implementation with 100% API compatible.__
