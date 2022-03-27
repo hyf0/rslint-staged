@@ -2,11 +2,15 @@ use std::path::PathBuf;
 
 use git2::Repository;
 
-struct Repo {
+struct GitWorkflow {
   raw: Repository,
   pub root: PathBuf,
 }
-impl Repo {
+impl GitWorkflow {
+  pub fn prepare(&self) {
+
+  }
+
   pub fn staged_files(&self) -> Vec<PathBuf> {
       let repo = &self.raw;
       let head_tree = repo.head().unwrap().peel_to_tree().unwrap();
@@ -24,7 +28,7 @@ impl Repo {
   }
 }
 
-impl std::fmt::Debug for Repo {
+impl std::fmt::Debug for GitWorkflow {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       f.debug_struct("Repo").finish()
   }

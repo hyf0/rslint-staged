@@ -29,6 +29,20 @@ struct RslintStagedConfigItem {
 }
 
 impl RslintStagedConfig {
+    pub fn get_possible_files<'paths, T: AsRef<Path>>(
+        &self,
+        paths: &'paths [T],
+    ) -> Vec<&'paths Path> {
+        paths
+            .into_iter()
+            .map(|path| path.as_ref())
+            .filter(|path| {
+                self.items
+                    .iter()
+                    .any(|item| item.path_matcher.is_match(path))
+            })
+            .collect()
+    }
     pub fn from_json(json_value: serde_json::Value) -> Self {
         if let serde_json::Value::Object(config_obj) = json_value {
             let items = config_obj
@@ -83,7 +97,7 @@ fn get_rslint_staged_config<T: AsRef<Path>>(cwd: T) -> RslintStagedConfig {
 }
 
 struct Repo {
-    raw: Repository,
+    pub raw: Repository,
     pub root: PathBuf,
 }
 impl Repo {
@@ -119,8 +133,35 @@ struct RslintStaged {
 }
 
 impl RslintStaged {
-    pub fn exec(&self) {
+    pub fn exec(&self) -> anyhow::Result<()> {
+        let _has_initial_commit = {
+            let repo = &self.repo.raw;
+            repo.stash_save(stasher, message, flags)
+            let mut revwalk = self.repo.raw.revwalk()?;
+            revwalk.set_sorting(git2::Sort::TIME)?;
+            revwalk.push_head()?;
+            revwalk
+                .filter_map(|oid| {
+                    oid.and_then(|oid| repo.find_commit(oid))
+                        .map_or(None, |commit| Some(commit))
+                })
+                .next()
+                .is_some()
+        };
+
+
+        // prepare
+
+
+
         let staged_files = self.repo.staged_files();
+
+        if staged_files.is_empty() {
+            if !self.cli_options.quiet {
+                panic!("Empty staged files")
+            }
+        }
+
         log::debug!("staged_files {:?}", staged_files);
         let cwd = &self.cli_options.cwd;
         self.config.items.par_iter().for_each(|config_item| {
@@ -142,6 +183,7 @@ impl RslintStaged {
                     .unwrap();
             });
         });
+        Ok(())
     }
 }
 
