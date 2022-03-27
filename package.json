@@ -4,7 +4,10 @@
   "description": "---",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-mac": "cargo build --release --target x86_64-apple-darwin && cargo build --release --target aarch64-apple-darwin",
+    "build-win": "cargo build --release --target x86_64-pc-windows-msvc",
+    "build-lin": "cargo build --release --target x86_64-unknown-linux-gnu cargo build --release --target armv7-unknown-linux-gnueabihf"
   },
   "repository": {
     "type": "git",

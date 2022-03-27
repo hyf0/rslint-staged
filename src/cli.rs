@@ -49,6 +49,7 @@ impl From<CliInput> for CliOptions {
                 .cwd
                 .unwrap_or_else(|| std::env::current_dir().unwrap()),
             shell: input.shell,
+
             debug: input.debug,
             verbose: input.verbose,
             no_stash: input.no_stash,

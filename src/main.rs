@@ -1,17 +1,17 @@
 mod cli;
+mod git;
 
 use clap::StructOpt;
 use cli::CliInput;
 use simple_logger::SimpleLogger;
 
 use std::{
-    collections::HashMap,
     path::{Path, PathBuf},
     process::Command,
 };
 
-use git2::{ErrorCode, Repository};
-use globset::{Glob, GlobMatcher};
+use git2::Repository;
+use globset::GlobMatcher;
 use rayon::prelude::*;
 
 use crate::cli::CliOptions;
@@ -23,6 +23,7 @@ struct RslintStagedConfig {
 
 #[derive(Debug)]
 struct RslintStagedConfigItem {
+    pub glob_pat: String,
     pub path_matcher: GlobMatcher,
     pub commands: Vec<String>,
 }
@@ -34,7 +35,7 @@ impl RslintStagedConfig {
                 .into_iter()
                 .map(|(glob_pat, commands)| {
                     let path_matcher = globset::Glob::new(&glob_pat).unwrap().compile_matcher();
-                    let commands = match commands {
+                    let mut commands = match commands {
                         serde_json::Value::String(command) => {
                             vec![command]
                         }
@@ -44,7 +45,10 @@ impl RslintStagedConfig {
                         }
                         _ => unreachable!(),
                     };
+                    // TODO: A simple workaround. Using libgit2 replace this.
+                    // commands.push("git add".to_string());
                     RslintStagedConfigItem {
+                        glob_pat,
                         path_matcher,
                         commands,
                     }
@@ -117,9 +121,10 @@ struct RslintStaged {
 impl RslintStaged {
     pub fn exec(&self) {
         let staged_files = self.repo.staged_files();
-        let cwd = &self.cli_options.cwd;
         log::debug!("staged_files {:?}", staged_files);
+        let cwd = &self.cli_options.cwd;
         self.config.items.par_iter().for_each(|config_item| {
+            log::debug!("process {:?}", config_item.glob_pat);
             let filterd = staged_files
                 .iter()
                 .filter(|path| config_item.path_matcher.is_match(path))
