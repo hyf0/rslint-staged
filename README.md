@@ -2,4 +2,4 @@
 
 ---
 
-__lint-staged rust implementation with 100% API compatible.__
+__[lint-staged0](https://github.com/okonet/lint-staged) rust implementation with 100% API compatible.__
